@@ -1,0 +1,66 @@
+# DICOM de-identification rules, based on DICOM PS3.15 Annex E
+# (Basic Application Level Confidentiality Profile).
+
+default_action: remove
+
+# Non-PHI technical/imaging metadata. 
+keep:
+  - Modality
+  - Manufacturer
+  - ManufacturerModelName
+  - SoftwareVersions
+  - BodyPartExamined
+  - Rows
+  - Columns
+  - BitsAllocated
+  - BitsStored
+  - PixelSpacing
+  - SliceThickness
+  - PhotometricInterpretation
+  - SamplesPerPixel
+  - TransferSyntaxUID       # required for file validity, not PHI
+  - SOPClassUID             # required for file validity, not PHI
+  - PatientSex               # low re-identification risk, useful for cohort stats
+  - PatientAge                # low re-identification risk in isolation
+
+# Tags replaced with deterministic HMAC-derived DICOM UIDs.
+hash_uid:
+  - StudyInstanceUID
+  - SeriesInstanceUID
+  - SOPInstanceUID
+  - FrameOfReferenceUID
+  - PatientID
+
+# Date tags shifted by a per-patient deterministic offset (derived from the hashed PatientID)
+date_shift:
+  - StudyDate
+  - SeriesDate
+  - AcquisitionDate
+  - ContentDate
+  - PatientBirthDate
+
+# Explicitly known-PHI tags, always stripped outright.
+remove:
+  - PatientName
+  - PatientAddress
+  - PatientTelephoneNumbers
+  - ReferringPhysicianName
+  - PerformingPhysicianName
+  - InstitutionName
+  - InstitutionAddress
+  - OperatorsName
+  - StationName
+  - RequestingPhysician
+  - PersonName
+  - OtherPatientIDs
+  - OtherPatientNames
+  - PatientMotherBirthName
+  - EthnicGroup
+  - StudyID
+  - AccessionNumber
+  - DeviceSerialNumber  
+
+burned_in_risk_modalities:
+  - US
+  - OT
+  - SC

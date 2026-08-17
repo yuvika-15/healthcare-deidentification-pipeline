@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: deid_pipeline
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: deidpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d deid_pipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pipeline:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: deid_pipeline
+      DB_USER: postgres
+      DB_PASSWORD: deidpassword
+      DEID_SALT: "secure_random_salt_value"
+      DICOM_INPUT_DIR: "/data/input/dicoms"
+      PDF_INPUT_DIR: "/data/input/pdfs"
+      DICOM_OUTPUT_DIR: "/data/output/dicoms"
+      PDF_OUTPUT_DIR: "/data/output/pdfs"
+      QUARANTINE_DIR: "/data/output/quarantine"
+    volumes:
+      - ./data:/data
+
+volumes:
+  postgres_data:
