@@ -805,20 +805,60 @@ Being explicit about these limitations is intentional: the project favors **audi
 
 ---
 
-# Suggested portfolio evidence
+# Pipeline in Action
 
-For a stronger GitHub presentation, future screenshots can be committed under `docs/assets/` and referenced here.
+The repository includes execution evidence generated from **synthetic test data** under [`docs/assets/`](docs/assets/).
 
-Useful evidence includes:
+### Batch processing
 
-1. Docker Desktop showing `db` healthy and the pipeline completing successfully.
-2. Terminal output showing non-zero `files_discovered`.
-3. A PostgreSQL `pipeline_runs` query showing processed/skipped/quarantined counts.
-4. A safe synthetic PDF before/after redaction comparison.
-5. Sanitized DICOM metadata printed before/after using a synthetic DICOM fixture.
-6. A second run showing duplicate files counted as `skipped`.
+![Pipeline processing](docs/assets/pipeline-processing.png)
 
-Only **synthetic data** should be used in public screenshots.
+A Dockerized run discovered and processed a substantial synthetic batch with PostgreSQL healthy and `MAX_WORKERS=8`.
+
+**Observed run result:**
+
+- **1,678 DICOM files processed**
+- **60 PDF reports processed**
+- **1,738 total files processed**
+- **0 failed**
+- **0 quarantined**
+- pipeline exited successfully with **code 0**
+
+The compact completion log is also available here: [`pipeline-complete.png`](docs/assets/pipeline-complete.png).
+
+### PostgreSQL audit trail
+
+![PostgreSQL audit](docs/assets/postgres-audit.png)
+
+The demonstrated run persisted:
+
+- **1,678 DICOM records**
+- **60 PDF report records**
+- **79 pseudonymous patient records**
+- batch-level execution summaries in `pipeline_runs`
+
+This provides queryable evidence that processing state and audit metadata survive outside the pipeline process itself.
+
+### DICOM pseudonymization evidence
+
+![DICOM pseudonymization](docs/assets/dicom-pseudonymization.png)
+
+The sanitized metadata demonstrates:
+
+- `PatientName` replaced with `ANONYMOUS`;
+- deterministic pseudonymous `PatientID` values;
+- shifted birth dates;
+- retained technical metadata such as modality and manufacturer;
+- repeated pseudonymous IDs across multiple files belonging to the same synthetic patient, demonstrating consistent cross-file linkage.
+
+### Sanitized output examples
+
+Representative sanitized outputs are included as screenshots:
+
+- [`sanitized-example-dicom.png`](docs/assets/sanitized-example-dicom.png)
+- [`sanitized-example-pdf.png`](docs/assets/sanitized-example-pdf.png)
+
+All public examples and screenshots use **synthetic data only**.
 
 ---
 
