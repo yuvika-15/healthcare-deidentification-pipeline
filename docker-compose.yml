@@ -1,41 +1,47 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: deid_pipeline
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: deidpassword
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${DB_NAME:-deid_pipeline}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d deid_pipeline"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-deid_pipeline}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    # Not published to the host by default - only the pipeline container needs it.
+    # Uncomment to inspect the DB locally with a client:
+    # ports:
+    #   - "5432:5432"
 
   pipeline:
     build: .
+    restart: "no"
     depends_on:
       db:
         condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: deid_pipeline
-      DB_USER: postgres
-      DB_PASSWORD: deidpassword
-      DEID_SALT: "secure_random_salt_value"
-      DICOM_INPUT_DIR: "/data/input/dicoms"
-      PDF_INPUT_DIR: "/data/input/pdfs"
-      DICOM_OUTPUT_DIR: "/data/output/dicoms"
-      PDF_OUTPUT_DIR: "/data/output/pdfs"
+      DB_NAME: ${DB_NAME:-deid_pipeline}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      DEID_SALT: ${DEID_SALT:?DEID_SALT must be set in .env}
+      DICOM_INPUT_DIR: "/data/input/dicom"
+      PDF_INPUT_DIR: "/data/input/pdf"
+      DICOM_OUTPUT_DIR: "/data/output/dicom"
+      PDF_OUTPUT_DIR: "/data/output/pdf"
       QUARANTINE_DIR: "/data/output/quarantine"
+      MAX_WORKERS: ${MAX_WORKERS:-8}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:
-      - ./data:/data
+      - ./pseudo_phi_dicom_data:/data/input/dicom:ro
+      - ./synthetic-phi-generator/synthetic-phi-generator/data/input/pdf:/data/input/pdf:ro
+      - ./data/output:/data/output
 
 volumes:
   postgres_data:

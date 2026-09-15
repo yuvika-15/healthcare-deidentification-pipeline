@@ -11,7 +11,12 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
+COPY config/ ./config/
+
+RUN mkdir -p /data/input/dicom /data/input/pdf /data/output/dicom /data/output/pdf /data/output/quarantine
 
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["python", "-m", "src.main"]
+
+ENV PYTHONPATH=/app/src
