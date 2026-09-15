@@ -15,10 +15,10 @@ from pathlib import Path
 
 from pipeline.config import CONFIG
 from pipeline.db import Database
-from pipeline.dicom import DicomDeidentifier
+from pipeline.dicom_deid import DicomDeidentifier
 from pipeline.hashing import Hasher
-from pipeline.logging import setup_logging
-from pipeline.pdf import PdfDeidentifier
+from pipeline.logging_setup import setup_logging
+from pipeline.pdf_deid import PdfDeidentifier
 from pipeline.storage import Storage
 
 logger = logging.getLogger("pipeline.main")
